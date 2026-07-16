@@ -20,7 +20,7 @@ from ..algo.file_filter import filter_ignored
 from ..algo.git_patch_processing import extract_hunk_headers
 from ..algo.language_handler import is_valid_file
 from ..algo.types import EDIT_TYPE
-from ..algo.utils import (PRReviewHeader, Range, clip_tokens,
+from ..algo.utils import (PRReviewHeader, PRReviewMarker, Range, clip_tokens,
                           find_line_number_of_relevant_line_in_file,
                           load_large_diff, set_file_languages)
 from ..config_loader import get_settings
@@ -200,12 +200,16 @@ class GithubProvider(GitProvider):
         if not getattr(self, "comments", None):
             self.comments = list(self.pr.get_issue_comments())
         prefixes = []
+        markers = []
         if full:
             prefixes.append(PRReviewHeader.REGULAR.value)
+            markers.append(PRReviewMarker.REGULAR.value)
         if incremental:
             prefixes.append(PRReviewHeader.INCREMENTAL.value)
+            markers.append(PRReviewMarker.INCREMENTAL.value)
         for index in range(len(self.comments) - 1, -1, -1):
-            if any(self.comments[index].body.startswith(prefix) for prefix in prefixes):
+            body = self.comments[index].body
+            if any(body.startswith(prefix) for prefix in prefixes) or any(marker in body for marker in markers):
                 return self.comments[index]
         return None
 

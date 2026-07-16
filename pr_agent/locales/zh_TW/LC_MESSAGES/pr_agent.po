@@ -1,0 +1,140 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: pr-agent 0.39.0\n"
+"PO-Revision-Date: 2026-07-15 00:00+0800\n"
+"Last-Translator: PR-Agent contributors\n"
+"Language-Team: Traditional Chinese\n"
+"Language: zh_TW\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+msgid "## PR Reviewer Guide"
+msgstr "## PR 審閱指南"
+
+msgid "## Incremental PR Reviewer Guide"
+msgstr "## 增量 PR 審閱指南"
+
+msgid "Diagram Walkthrough"
+msgstr "圖表導覽"
+
+msgid "File Walkthrough"
+msgstr "檔案導覽"
+
+msgid "Review for commits since previous PR-Agent review"
+msgstr "審閱自上次 PR-Agent 審閱後的提交"
+
+msgid "Here are some key observations to aid the review process:"
+msgstr "以下是一些有助於審閱的重點觀察："
+
+msgid "Estimated effort to review"
+msgstr "預估審閱工作量"
+
+msgid "No relevant tests"
+msgstr "沒有相關測試"
+
+msgid "PR contains tests"
+msgstr "PR 包含測試"
+
+msgid "No security concerns identified"
+msgstr "未發現安全性疑慮"
+
+msgid "Security concerns"
+msgstr "安全性疑慮"
+
+msgid "No major issues detected"
+msgstr "未發現重大問題"
+
+msgid "Recommended focus areas for review"
+msgstr "建議的審閱重點"
+
+msgid "Incremental Review Skipped"
+msgstr "已略過增量審閱"
+
+msgid "No files were changed since the"
+msgstr "自以下審閱後沒有檔案變更："
+
+msgid "previous PR Review"
+msgstr "上一次 PR 審閱"
+
+msgid "Preparing review..."
+msgstr "正在準備審閱……"
+
+msgid "Preparing answer..."
+msgstr "正在準備回答……"
+
+msgid "Generating Documentation..."
+msgstr "正在產生文件……"
+
+msgid "No code documentation found to improve this PR."
+msgstr "找不到可改善此 PR 的程式碼文件。"
+
+msgid "Suggestion"
+msgstr "建議"
+
+msgid "Proposed documentation"
+msgstr "建議的文件內容"
+
+msgid "Preparing suggestions..."
+msgstr "正在準備建議……"
+
+msgid "Preparing PR description..."
+msgstr "正在準備 PR 描述……"
+
+msgid "Preparing PR labels..."
+msgstr "正在準備 PR 標籤……"
+
+msgid "Preparing changelog updates..."
+msgstr "正在準備變更記錄更新……"
+
+msgid "## PR Code Suggestions"
+msgstr "## PR 程式碼建議"
+
+msgid "Failed to generate code suggestions for PR"
+msgstr "無法產生 PR 程式碼建議"
+
+msgid "No code suggestions found for the PR."
+msgstr "找不到適用於此 PR 的程式碼建議。"
+
+msgid "No suggestions found to improve this PR."
+msgstr "找不到可改善此 PR 的建議。"
+
+msgid "Explore these optional code suggestions:"
+msgstr "請參考以下選用的程式碼建議："
+
+msgid "Category"
+msgstr "類別"
+
+msgid "Impact"
+msgstr "影響"
+
+msgid "Tool usage guide"
+msgstr "工具使用指南"
+
+msgid "Describe tool usage guide"
+msgstr "描述工具使用指南"
+
+msgid "PR Agent Walkthrough"
+msgstr "PR Agent 導覽"
+
+msgid "Review"
+msgstr "審閱"
+
+msgid "Suggestions"
+msgstr "建議"
+
+msgid "review"
+msgstr "審閱"
+
+msgid "suggestions"
+msgstr "建議"
+
+msgid "{name} updated until commit {commit}"
+msgstr "{name}已更新至提交 {commit}"
+
+msgid "Persistent {name}"
+msgstr "持續更新的{name}"
+
+msgid "updated to latest commit {commit}"
+msgstr "已更新至最新提交 {commit}"

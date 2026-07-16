@@ -72,7 +72,7 @@ def test_e2e_run_github_app():
                 if 'Work in progress' in comments_body[1]:
                     continue
                 assert mr_header_body.startswith(PR_HEADER_START_WITH), "DESCRIBE feedback is invalid"
-                assert comments_body[0].startswith(REVIEW_START_WITH), "REVIEW feedback is invalid"
+                assert REVIEW_START_WITH in comments_body[0], "REVIEW feedback is invalid"
                 assert re.match(IMPROVE_START_WITH_REGEX_PATTERN, comments_body[1]), "IMPROVE feedback is invalid"
                 break
             else:

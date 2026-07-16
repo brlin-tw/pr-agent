@@ -15,6 +15,7 @@ from pr_agent.algo.token_handler import TokenHandler
 from pr_agent.algo.utils import clip_tokens, get_max_tokens, load_yaml, ModelType
 from pr_agent.config_loader import get_settings
 from pr_agent.git_providers import get_git_provider_with_context
+from pr_agent.i18n import gettext as _
 from pr_agent.log import get_logger
 from pr_agent.servers.help import HelpMessage
 
@@ -551,7 +552,7 @@ class PRHelpDocs(object):
                 get_logger().info(f"No answer found")
                 return ""
             if self.git_provider.is_supported("gfm_markdown") and get_settings().pr_help_docs.enable_help_text:
-                answer_str += "<hr>\n\n<details> <summary><strong>💡 Tool usage guide:</strong></summary><hr> \n\n"
+                answer_str += f"<hr>\n\n<details> <summary><strong>💡 {_('Tool usage guide')}:</strong></summary><hr> \n\n"
                 answer_str += HelpMessage.get_help_docs_usage_guide()
                 answer_str += "\n</details>\n"
             return answer_str

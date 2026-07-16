@@ -1,2 +1,3 @@
 recursive-include pr_agent *.toml
+recursive-include pr_agent/locales *.mo *.po
 recursive-exclude pr_agent *.secrets.toml

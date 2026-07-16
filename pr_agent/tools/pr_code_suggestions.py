@@ -27,10 +27,18 @@ from pr_agent.git_providers import (AzureDevopsProvider, GithubProvider,
                                     GitLabProvider, get_git_provider,
                                     get_git_provider_with_context)
 from pr_agent.git_providers.git_provider import get_main_pr_language, GitProvider
+from pr_agent.i18n import gettext as _
 from pr_agent.log import get_logger
 from pr_agent.servers.help import HelpMessage
 from pr_agent.tools.pr_description import insert_br_after_x_chars
 from pr_agent.tools.progress_comment import build_progress_comment
+
+SUGGESTIONS_COMMENT_MARKER = "<!-- pr-agent:suggestions -->"
+LEGACY_SUGGESTIONS_HEADER = "## PR Code Suggestions ✨"
+
+
+def get_suggestions_header() -> str:
+    return f"{_('## PR Code Suggestions')} ✨"
 
 
 class PRCodeSuggestions:
@@ -111,7 +119,7 @@ class PRCodeSuggestions:
                 if self.git_provider.is_supported("gfm_markdown"):
                     self.progress_response = self.git_provider.publish_comment(self.progress)
                 else:
-                    self.git_provider.publish_comment("Preparing suggestions...", is_temporary=True)
+                    self.git_provider.publish_comment(_("Preparing suggestions..."), is_temporary=True)
 
             # # call the model to get the suggestions, and self-reflect on them
             # if not self.is_extended:
@@ -149,7 +157,7 @@ class PRCodeSuggestions:
                             and isinstance(self.git_provider, GithubProvider)):
                         pr_body += "\n\n>💡 Need additional feedback ? start a [PR chat](https://chromewebstore.google.com/detail/ephlnjeghhogofkifjloamocljapahnl) \n\n"
                     if get_settings().pr_code_suggestions.enable_help_text:
-                        pr_body += "<hr>\n\n<details> <summary><strong>💡 Tool usage guide:</strong></summary><hr> \n\n"
+                        pr_body += f"<hr>\n\n<details> <summary><strong>💡 {_('Tool usage guide')}:</strong></summary><hr> \n\n"
                         pr_body += HelpMessage.get_improve_usage_guide()
                         pr_body += "\n</details>\n"
 
@@ -161,12 +169,14 @@ class PRCodeSuggestions:
                     if get_settings().pr_code_suggestions.persistent_comment: # true by default
                         self.publish_persistent_comment_with_history(self.git_provider,
                                                                      pr_body,
-                                                                     initial_header="## PR Code Suggestions ✨",
+                                                                     initial_header=get_suggestions_header(),
                                                                      update_header=True,
                                                                      name="suggestions",
                                                                      final_update_message=False,
                                                                      max_previous_comments=get_settings().pr_code_suggestions.max_history_len,
-                                                                     progress_response=self.progress_response)
+                                                                     progress_response=self.progress_response,
+                                                                     comment_marker=SUGGESTIONS_COMMENT_MARKER,
+                                                                     legacy_headers=(LEGACY_SUGGESTIONS_HEADER,))
                     else:
                         if self.progress_response:
                             self.git_provider.edit_comment(self.progress_response, body=pr_body)
@@ -194,7 +204,7 @@ class PRCodeSuggestions:
                 else:
                     try:
                         self.git_provider.remove_initial_comment()
-                        self.git_provider.publish_comment(f"Failed to generate code suggestions for PR")
+                        self.git_provider.publish_comment(_("Failed to generate code suggestions for PR"))
                     except Exception as e:
                         get_logger().exception(f"Failed to update persistent review, error: {e}")
 
@@ -212,7 +222,10 @@ class PRCodeSuggestions:
         return pr_body
 
     async def publish_no_suggestions(self):
-        pr_body = "## PR Code Suggestions ✨\n\nNo code suggestions found for the PR."
+        pr_body = (
+            f"{get_suggestions_header()}\n\n{SUGGESTIONS_COMMENT_MARKER}\n\n"
+            f"{_('No code suggestions found for the PR.')}"
+        )
         if (get_settings().config.publish_output and
                 get_settings().pr_code_suggestions.get('publish_output_no_suggestions', True)):
             get_logger().warning('No code suggestions found for the PR.')
@@ -252,19 +265,25 @@ class PRCodeSuggestions:
                                                 final_update_message=True,
                                                 max_previous_comments=4,
                                                 progress_response=None,
-                                                only_fold=False):
+                                                only_fold=False,
+                                                comment_marker=None,
+                                                legacy_headers=()):
         if hasattr(git_provider, '_publish_check_run') and get_settings().github.publish_as_check_run:
             if git_provider._publish_check_run(pr_comment, name):
                 return
 
         def _extract_link(comment_text: str):
             r = re.compile(r"<!--.*?-->")
-            match = r.search(comment_text)
-
             up_to_commit_txt = ""
-            if match:
-                up_to_commit_txt = f" up to commit {match.group(0)[4:-3].strip()}"
+            for match in r.finditer(comment_text):
+                marker_content = match.group(0)[4:-3].strip()
+                if marker_content != "pr-agent:suggestions":
+                    up_to_commit_txt = f" up to commit {marker_content}"
+                    break
             return up_to_commit_txt
+
+        def _header_block():
+            return f"{initial_header}\n\n{comment_marker}" if comment_marker else initial_header
 
         history_header = f"#### Previous suggestions\n"
         last_commit_num = git_provider.get_latest_commit_url().split('/')[-1][:7]
@@ -280,7 +299,9 @@ class PRCodeSuggestions:
             try:
                 prev_comments = list(git_provider.get_issue_comments())
                 for comment in prev_comments:
-                    if comment.body.startswith(initial_header):
+                    is_current_comment = comment_marker and comment_marker in comment.body
+                    is_legacy_comment = any(comment.body.startswith(header) for header in legacy_headers)
+                    if comment.body.startswith(initial_header) or is_current_comment or is_legacy_comment:
                         prev_suggestions = comment.body
                         found_comment = comment
                         comment_url = git_provider.get_comment_url(comment)
@@ -303,7 +324,7 @@ class PRCodeSuggestions:
 
                             new_suggestion_table = pr_comment.replace(initial_header, "").strip()
 
-                            pr_comment_updated = f"{initial_header}\n{latest_commit_html_comment}\n\n"
+                            pr_comment_updated = f"{_header_block()}\n\n{latest_commit_html_comment}\n\n"
                             pr_comment_updated += f"{latest_suggestion_header}\n{new_suggestion_table}\n\n___\n\n"
                             pr_comment_updated += f"{history_header}{prev_suggestion_table}\n"
                         else:
@@ -332,7 +353,7 @@ class PRCodeSuggestions:
 
                             new_suggestion_table = pr_comment.replace(initial_header, "").strip()
 
-                            pr_comment_updated = f"{initial_header}\n"
+                            pr_comment_updated = f"{_header_block()}\n\n"
                             pr_comment_updated += f"{latest_commit_html_comment}\n\n"
                             pr_comment_updated += f"{latest_suggestion_header}\n\n{new_suggestion_table}\n\n"
                             pr_comment_updated += "___\n\n"
@@ -353,7 +374,7 @@ class PRCodeSuggestions:
 
         # if we are here, we did not find a previous comment to update
         body = pr_comment.replace(initial_header, "").strip()
-        pr_comment = f"{initial_header}\n\n{latest_commit_html_comment}\n\n{body}\n\n"
+        pr_comment = f"{_header_block()}\n\n{latest_commit_html_comment}\n\n{body}\n\n"
         if progress_response:
             git_provider.edit_comment(progress_response, pr_comment)
             new_comment = progress_response
@@ -778,14 +799,14 @@ class PRCodeSuggestions:
 
     def generate_summarized_suggestions(self, data: Dict) -> str:
         try:
-            pr_body = "## PR Code Suggestions ✨\n\n"
+            pr_body = f"{get_suggestions_header()}\n\n"
 
             if len(data.get('code_suggestions', [])) == 0:
-                pr_body += "No suggestions found to improve this PR."
+                pr_body += _("No suggestions found to improve this PR.")
                 return pr_body
 
             if get_settings().config.is_auto_command:
-                pr_body += "Explore these optional code suggestions:\n\n"
+                pr_body += _("Explore these optional code suggestions:") + "\n\n"
 
             language_extension_map_org = get_settings().language_extension_map_org
             extension_to_language = {}
@@ -794,10 +815,10 @@ class PRCodeSuggestions:
                     extension_to_language[ext] = language
 
             pr_body += "<table>"
-            header = f"Suggestion"
+            header = _("Suggestion")
             delta = 66
             header += "&nbsp; " * delta
-            pr_body += f"""<thead><tr><td><strong>Category</strong></td><td align=left><strong>{header}</strong></td><td align=center><strong>Impact</strong></td></tr>"""
+            pr_body += f"""<thead><tr><td><strong>{_('Category')}</strong></td><td align=left><strong>{header}</strong></td><td align=center><strong>{_('Impact')}</strong></td></tr>"""
             pr_body += """<tbody>"""
             suggestions_labels = dict()
             # add all suggestions related to each label

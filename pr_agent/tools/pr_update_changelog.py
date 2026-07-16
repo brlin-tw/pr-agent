@@ -14,6 +14,7 @@ from pr_agent.algo.utils import ModelType, show_relevant_configurations
 from pr_agent.config_loader import get_settings
 from pr_agent.git_providers import GithubProvider, get_git_provider
 from pr_agent.git_providers.git_provider import get_main_pr_language
+from pr_agent.i18n import gettext as _
 from pr_agent.log import get_logger
 
 CHANGELOG_LINES = 50
@@ -81,7 +82,7 @@ class PRUpdateChangelog:
             )
 
         if get_settings().config.publish_output:
-            self.git_provider.publish_comment("Preparing changelog updates...", is_temporary=True)
+            self.git_provider.publish_comment(_("Preparing changelog updates..."), is_temporary=True)
 
         await retry_with_fallback_models(self._prepare_prediction, model_type=ModelType.WEAK)
 

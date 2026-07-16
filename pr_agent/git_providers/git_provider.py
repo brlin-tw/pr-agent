@@ -7,8 +7,9 @@ import time
 from typing import Optional, Tuple
 
 from pr_agent.algo.types import FilePatchInfo
-from pr_agent.algo.utils import Range, process_description
+from pr_agent.algo.utils import PRReviewHeader, PRReviewMarker, Range, process_description
 from pr_agent.config_loader import get_settings
+from pr_agent.i18n import gettext as _
 from pr_agent.log import get_logger
 
 MAX_FILES_ALLOWED_FULL = 50
@@ -355,11 +356,18 @@ class GitProvider(ABC):
         try:
             prev_comments = list(self.get_issue_comments())
             for comment in prev_comments:
-                if comment.body.startswith(initial_header):
+                is_legacy_review = (
+                    initial_header == PRReviewMarker.REGULAR.value
+                    and comment.body.startswith(PRReviewHeader.REGULAR.value)
+                )
+                if comment.body.startswith(initial_header) or initial_header in comment.body or is_legacy_review:
                     latest_commit_url = self.get_latest_commit_url()
                     comment_url = self.get_comment_url(comment)
                     if update_header:
-                        updated_header = f"{initial_header}\n\n#### ({name.capitalize()} updated until commit {latest_commit_url})\n"
+                        update_text = _("{name} updated until commit {commit}").format(
+                            name=_(name.capitalize()), commit=latest_commit_url
+                        )
+                        updated_header = f"{initial_header}\n\n#### ({update_text})\n"
                         pr_comment_updated = pr_comment.replace(initial_header, updated_header)
                     else:
                         pr_comment_updated = pr_comment
@@ -367,8 +375,10 @@ class GitProvider(ABC):
                     # response = self.mr.notes.update(comment.id, {'body': pr_comment_updated})
                     self.edit_comment(comment, pr_comment_updated)
                     if final_update_message:
+                        persistent_name = _("Persistent {name}").format(name=_(name))
+                        final_update_text = _("updated to latest commit {commit}").format(commit=latest_commit_url)
                         return self.publish_comment(
-                            f"**[Persistent {name}]({comment_url})** updated to latest commit {latest_commit_url}")
+                            f"**[{persistent_name}]({comment_url})** {final_update_text}")
                     return comment
         except Exception as e:
             get_logger().exception(f"Failed to update persistent review, error: {e}")

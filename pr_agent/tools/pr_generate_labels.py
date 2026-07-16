@@ -13,6 +13,7 @@ from pr_agent.algo.utils import get_user_labels, load_yaml, set_custom_labels
 from pr_agent.config_loader import get_settings
 from pr_agent.git_providers import get_git_provider
 from pr_agent.git_providers.git_provider import get_main_pr_language
+from pr_agent.i18n import gettext as _
 from pr_agent.log import get_logger
 
 
@@ -70,7 +71,7 @@ class PRGenerateLabels:
         try:
             get_logger().info(f"Generating a PR labels {self.pr_id}")
             if get_settings().config.publish_output:
-                self.git_provider.publish_comment("Preparing PR labels...", is_temporary=True)
+                self.git_provider.publish_comment(_("Preparing PR labels..."), is_temporary=True)
 
             await retry_with_fallback_models(self._prepare_prediction)
 

@@ -13,6 +13,7 @@ from pr_agent.algo.utils import load_yaml
 from pr_agent.config_loader import get_settings
 from pr_agent.git_providers import get_git_provider
 from pr_agent.git_providers.git_provider import get_main_pr_language
+from pr_agent.i18n import gettext as _
 from pr_agent.log import get_logger
 
 
@@ -51,7 +52,7 @@ class PRAddDocs:
         try:
             get_logger().info('Generating code Docs for PR...')
             if get_settings().config.publish_output:
-                self.git_provider.publish_comment("Generating Documentation...", is_temporary=True)
+                self.git_provider.publish_comment(_("Generating Documentation..."), is_temporary=True)
 
             get_logger().info('Preparing PR documentation...')
             await retry_with_fallback_models(self._prepare_prediction)
@@ -105,7 +106,7 @@ class PRAddDocs:
         docs = []
 
         if not data['Code Documentation']:
-            return self.git_provider.publish_comment('No code documentation found to improve this PR.')
+            return self.git_provider.publish_comment(_("No code documentation found to improve this PR."))
 
         for d in data['Code Documentation']:
             try:
@@ -119,7 +120,7 @@ class PRAddDocs:
                     new_code_snippet = self.dedent_code(relevant_file, relevant_line, documentation, doc_placement,
                                                         add_original_line=True)
 
-                    body = f"**Suggestion:** Proposed documentation\n```suggestion\n" + new_code_snippet + "\n```"
+                    body = f"**{_('Suggestion')}:** {_('Proposed documentation')}\n```suggestion\n" + new_code_snippet + "\n```"
                     docs.append({'body': body, 'relevant_file': relevant_file,
                                              'relevant_lines_start': relevant_line,
                                              'relevant_lines_end': relevant_line})

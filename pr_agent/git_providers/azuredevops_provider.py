@@ -9,7 +9,8 @@ from pr_agent.algo.types import EDIT_TYPE, FilePatchInfo
 
 from ..algo.file_filter import filter_ignored
 from ..algo.language_handler import is_valid_file
-from ..algo.utils import (PRDescriptionHeader, PRReviewHeader, clip_tokens,
+from ..algo.utils import (FILE_WALKTHROUGH_ATTRIBUTE, PRDescriptionHeader,
+                          PRReviewHeader, PRReviewMarker, clip_tokens,
                           find_line_number_of_relevant_line_in_file,
                           load_large_diff)
 from ..config_loader import get_settings
@@ -319,14 +320,17 @@ class AzureDevopsProvider(GitProvider):
         if not (full or incremental):
             raise ValueError("At least one of full or incremental must be True")
         prefixes = []
+        markers = []
         if full:
             prefixes.append(PRReviewHeader.REGULAR.value)
+            markers.append(PRReviewMarker.REGULAR.value)
         if incremental:
             prefixes.append(PRReviewHeader.INCREMENTAL.value)
+            markers.append(PRReviewMarker.INCREMENTAL.value)
         matches = []
         for comment in self.get_issue_comments():
             body = getattr(comment, "body", None)
-            if body and any(body.startswith(p) for p in prefixes):
+            if body and (any(body.startswith(p) for p in prefixes) or any(marker in body for marker in markers)):
                 matches.append(comment)
         if not matches:
             return None
@@ -637,8 +641,9 @@ class AzureDevopsProvider(GitProvider):
                 pr_body = pr_body[:ind]
 
             if len(pr_body) > MAX_PR_DESCRIPTION_AZURE_LENGTH:
-                changes_walkthrough_text = PRDescriptionHeader.FILE_WALKTHROUGH.value
-                ind = pr_body.find(changes_walkthrough_text)
+                ind = pr_body.find(FILE_WALKTHROUGH_ATTRIBUTE)
+                if ind == -1:
+                    ind = pr_body.find(PRDescriptionHeader.FILE_WALKTHROUGH.value)
                 if ind != -1:
                     pr_body = pr_body[:ind]
 

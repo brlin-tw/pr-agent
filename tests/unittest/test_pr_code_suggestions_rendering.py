@@ -4,7 +4,10 @@ import pytest
 
 from pr_agent.algo.types import FilePatchInfo
 from pr_agent.config_loader import get_settings
-from pr_agent.tools.pr_code_suggestions import PRCodeSuggestions
+from pr_agent.tools.pr_code_suggestions import (LEGACY_SUGGESTIONS_HEADER,
+                                                SUGGESTIONS_COMMENT_MARKER,
+                                                PRCodeSuggestions,
+                                                get_suggestions_header)
 from tests.unittest._settings_helpers import restore_settings, snapshot_settings
 
 TRUNCATION_SETTINGS = (
@@ -180,6 +183,70 @@ def test_generate_summarized_suggestions_empty_returns_placeholder():
     assert "No suggestions found to improve this PR." in out
     # No table is rendered when empty
     assert "<table>" not in out
+
+
+def test_generate_summarized_suggestions_translates_visible_header():
+    settings = get_settings()
+    snapshot = snapshot_settings(["config.response_language"])
+    settings.set("config.response_language", "zh-TW")
+    try:
+        out = _make_tool().generate_summarized_suggestions({"code_suggestions": []})
+    finally:
+        restore_settings(snapshot)
+
+    assert out.startswith("## PR 程式碼建議 ✨")
+
+
+def test_persistent_suggestions_use_stable_marker_with_translated_header():
+    settings = get_settings()
+    snapshot = snapshot_settings(["config.response_language", "github.publish_as_check_run"])
+    settings.set("config.response_language", "zh-TW")
+    settings.set("github.publish_as_check_run", False)
+    provider = MagicMock()
+    provider.get_issue_comments.return_value = []
+    provider.get_latest_commit_url.return_value = "https://example.test/commit/abcdef1"
+    try:
+        header = get_suggestions_header()
+        PRCodeSuggestions.publish_persistent_comment_with_history(
+            provider,
+            f"{header}\n\n<table></table>",
+            initial_header=header,
+            comment_marker=SUGGESTIONS_COMMENT_MARKER,
+            legacy_headers=(LEGACY_SUGGESTIONS_HEADER,),
+        )
+    finally:
+        restore_settings(snapshot)
+
+    body = provider.publish_comment.call_args.args[0]
+    assert body.startswith("## PR 程式碼建議 ✨\n\n<!-- pr-agent:suggestions -->")
+
+
+def test_persistent_suggestions_migrate_legacy_english_comment():
+    settings = get_settings()
+    snapshot = snapshot_settings(["config.response_language", "github.publish_as_check_run"])
+    settings.set("config.response_language", "zh-TW")
+    settings.set("github.publish_as_check_run", False)
+    old_comment = MagicMock()
+    old_comment.body = f"{LEGACY_SUGGESTIONS_HEADER}\n\n<!-- abcdef0 -->\n\n<table><tbody></tbody></table>"
+    provider = MagicMock()
+    provider.get_issue_comments.return_value = [old_comment]
+    provider.get_latest_commit_url.return_value = "https://example.test/commit/abcdef1"
+    provider.get_comment_url.return_value = "https://example.test/comment/1"
+    try:
+        header = get_suggestions_header()
+        PRCodeSuggestions.publish_persistent_comment_with_history(
+            provider,
+            f"{header}\n\n<table><tbody><tr></tr></tbody></table>",
+            initial_header=header,
+            comment_marker=SUGGESTIONS_COMMENT_MARKER,
+            legacy_headers=(LEGACY_SUGGESTIONS_HEADER,),
+        )
+    finally:
+        restore_settings(snapshot)
+
+    updated_body = provider.edit_comment.call_args.args[1]
+    assert updated_body.startswith("## PR 程式碼建議 ✨\n\n<!-- pr-agent:suggestions -->")
+    assert "up to commit abcdef0" in updated_body
 
 
 def test_generate_summarized_suggestions_renders_table_and_sorts_by_score():

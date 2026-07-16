@@ -13,6 +13,7 @@ from pr_agent.algo.token_handler import TokenHandler
 from pr_agent.algo.utils import ModelType, clip_tokens, load_yaml, get_max_tokens
 from pr_agent.config_loader import get_settings
 from pr_agent.git_providers import BitbucketServerProvider, GithubProvider, get_git_provider_with_context
+from pr_agent.i18n import gettext as _
 from pr_agent.log import get_logger
 
 
@@ -198,7 +199,7 @@ class PRHelpMessage:
                 relevant_configs = {'pr_help': dict(get_settings().pr_help),
                                     'config': dict(get_settings().config)}
                 get_logger().debug("Relevant configs", artifacts=relevant_configs)
-                pr_comment = "## PR Agent Walkthrough 🤖\n\n"
+                pr_comment = f"## {_('PR Agent Walkthrough')} 🤖\n\n"
                 pr_comment += "Welcome to the PR Agent, an AI-powered tool for automated pull request analysis, feedback, suggestions and more."""
                 pr_comment += "\n\nHere is a list of tools you can use to interact with the PR Agent:\n"
                 base_path = "https://pr-agent-docs.codium.ai/tools"

@@ -134,7 +134,7 @@ def test_e2e_run_gitea_app():
             if len(comments) >= 5:
                 valid_review = False
                 for comment in comments:
-                    if comment['body'].startswith('## PR Reviewer Guide 🔍'):
+                    if '<!-- pr-agent:review -->' in comment['body']:
                         valid_review = True
                         break
                 if valid_review:
@@ -187,4 +187,4 @@ def test_e2e_run_gitea_app():
             logger.error(f"Failed to clean up after test: {cleanup_error}")
 
 if __name__ == '__main__':
-    test_e2e_run_gitea_app() 
+    test_e2e_run_gitea_app()

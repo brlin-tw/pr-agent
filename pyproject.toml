@@ -40,6 +40,9 @@ dependencies = { file = ["requirements.txt"] }
 [tool.setuptools]
 include-package-data = true
 
+[tool.setuptools.package-data]
+pr_agent = ["locales/*/LC_MESSAGES/*.mo", "locales/*/LC_MESSAGES/*.po"]
+
 [tool.setuptools.packages.find]
 where = ["."]
 include = [

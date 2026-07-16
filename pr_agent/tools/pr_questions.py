@@ -11,6 +11,7 @@ from pr_agent.algo.utils import ModelType
 from pr_agent.config_loader import get_settings
 from pr_agent.git_providers import get_git_provider, GitLabProvider
 from pr_agent.git_providers.git_provider import get_main_pr_language
+from pr_agent.i18n import gettext as _
 from pr_agent.log import get_logger
 from pr_agent.servers.help import HelpMessage
 
@@ -57,7 +58,7 @@ class PRQuestions:
                             'config': dict(get_settings().config)}
         get_logger().debug("Relevant configs", artifacts=relevant_configs)
         if get_settings().config.publish_output:
-            self.git_provider.publish_comment("Preparing answer...", is_temporary=True)
+            self.git_provider.publish_comment(_("Preparing answer..."), is_temporary=True)
 
         # identify image
         img_path = self.identify_image_in_comment()
@@ -70,7 +71,7 @@ class PRQuestions:
         get_logger().debug(f"PR output", artifact=pr_comment)
 
         if self.git_provider.is_supported("gfm_markdown") and get_settings().pr_questions.enable_help_text:
-            pr_comment += "<hr>\n\n<details> <summary><strong>💡 Tool usage guide:</strong></summary><hr> \n\n"
+            pr_comment += f"<hr>\n\n<details> <summary><strong>💡 {_('Tool usage guide')}:</strong></summary><hr> \n\n"
             pr_comment += HelpMessage.get_ask_usage_guide()
             pr_comment += "\n</details>\n"
 

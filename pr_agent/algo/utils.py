@@ -28,6 +28,7 @@ from pr_agent.algo.git_patch_processing import extract_hunk_lines_from_patch
 from pr_agent.algo.token_handler import TokenEncoder
 from pr_agent.algo.types import FilePatchInfo
 from pr_agent.config_loader import get_settings, global_settings
+from pr_agent.i18n import gettext as _
 from pr_agent.log import get_logger
 
 
@@ -63,6 +64,11 @@ class PRReviewHeader(str, Enum):
     INCREMENTAL = "## Incremental PR Reviewer Guide"
 
 
+class PRReviewMarker(str, Enum):
+    REGULAR = "<!-- pr-agent:review -->"
+    INCREMENTAL = "<!-- pr-agent:incremental-review -->"
+
+
 class ReasoningEffort(str, Enum):
     XHIGH = "xhigh"
     HIGH = "high"
@@ -75,6 +81,9 @@ class ReasoningEffort(str, Enum):
 class PRDescriptionHeader(str, Enum):
     DIAGRAM_WALKTHROUGH = "Diagram Walkthrough"
     FILE_WALKTHROUGH = "File Walkthrough"
+
+
+FILE_WALKTHROUGH_ATTRIBUTE = 'data-pr-agent-section="file-walkthrough"'
 
 
 def get_setting(key: str) -> Any:
@@ -156,15 +165,17 @@ def convert_to_markdown_v2(output_data: dict,
     }
     markdown_text = ""
     if not incremental_review:
-        markdown_text += f"{PRReviewHeader.REGULAR.value} 🔍\n\n"
+        markdown_text += f"{_(PRReviewHeader.REGULAR.value)} 🔍\n\n{PRReviewMarker.REGULAR.value}\n\n"
     else:
-        markdown_text += f"{PRReviewHeader.INCREMENTAL.value} 🔍\n\n"
-        markdown_text += f"⏮️ Review for commits since previous PR-Agent review {incremental_review}.\n\n"
+        markdown_text += (
+            f"{_(PRReviewHeader.INCREMENTAL.value)} 🔍\n\n{PRReviewMarker.INCREMENTAL.value}\n\n"
+        )
+        markdown_text += f"⏮️ {_('Review for commits since previous PR-Agent review')} {incremental_review}.\n\n"
     if not output_data or not output_data.get('review', {}):
         return ""
 
     if get_settings().get("pr_reviewer.enable_intro_text", False):
-        markdown_text += f"Here are some key observations to aid the review process:\n\n"
+        markdown_text += f"{_('Here are some key observations to aid the review process:')}\n\n"
 
     if gfm_supported:
         markdown_text += "<table>\n"
@@ -191,24 +202,24 @@ def convert_to_markdown_v2(output_data: dict,
             value = f"{value_int} {blue_bars}{white_bars}"
             if gfm_supported:
                 markdown_text += f"<tr><td>"
-                markdown_text += f"{emoji}&nbsp;<strong>{key_nice}</strong>: {value}"
+                markdown_text += f"{emoji}&nbsp;<strong>{_(key_nice)}</strong>: {value}"
                 markdown_text += f"</td></tr>\n"
             else:
-                markdown_text += f"### {emoji} {key_nice}: {value}\n\n"
+                markdown_text += f"### {emoji} {_(key_nice)}: {value}\n\n"
         elif 'relevant tests' in key_nice.lower():
             value = str(value).strip().lower()
             if gfm_supported:
                 markdown_text += f"<tr><td>"
                 if is_value_no(value):
-                    markdown_text += f"{emoji}&nbsp;<strong>No relevant tests</strong>"
+                    markdown_text += f"{emoji}&nbsp;<strong>{_('No relevant tests')}</strong>"
                 else:
-                    markdown_text += f"{emoji}&nbsp;<strong>PR contains tests</strong>"
+                    markdown_text += f"{emoji}&nbsp;<strong>{_('PR contains tests')}</strong>"
                 markdown_text += f"</td></tr>\n"
             else:
                 if is_value_no(value):
-                    markdown_text += f'### {emoji} No relevant tests\n\n'
+                    markdown_text += f"### {emoji} {_('No relevant tests')}\n\n"
                 else:
-                    markdown_text += f"### {emoji} PR contains tests\n\n"
+                    markdown_text += f"### {emoji} {_('PR contains tests')}\n\n"
         elif 'ticket compliance check' in key_nice.lower():
             markdown_text = ticket_markdown_logic(emoji, markdown_text, value, gfm_supported)
         elif 'contribution time cost estimate' in key_nice.lower():
@@ -223,17 +234,17 @@ def convert_to_markdown_v2(output_data: dict,
             if gfm_supported:
                 markdown_text += f"<tr><td>"
                 if is_value_no(value):
-                    markdown_text += f"{emoji}&nbsp;<strong>No security concerns identified</strong>"
+                    markdown_text += f"{emoji}&nbsp;<strong>{_('No security concerns identified')}</strong>"
                 else:
-                    markdown_text += f"{emoji}&nbsp;<strong>Security concerns</strong><br><br>\n\n"
+                    markdown_text += f"{emoji}&nbsp;<strong>{_('Security concerns')}</strong><br><br>\n\n"
                     value = emphasize_header(value.strip())
                     markdown_text += f"{value}"
                 markdown_text += f"</td></tr>\n"
             else:
                 if is_value_no(value):
-                    markdown_text += f'### {emoji} No security concerns identified\n\n'
+                    markdown_text += f"### {emoji} {_('No security concerns identified')}\n\n"
                 else:
-                    markdown_text += f"### {emoji} Security concerns\n\n"
+                    markdown_text += f"### {emoji} {_('Security concerns')}\n\n"
                     value = emphasize_header(value.strip(), only_markdown=True)
                     markdown_text += f"{value}\n\n"
         elif 'todo sections' in key_nice.lower():
@@ -263,18 +274,18 @@ def convert_to_markdown_v2(output_data: dict,
             if is_value_no(value):
                 if gfm_supported:
                     markdown_text += f"<tr><td>"
-                    markdown_text += f"{emoji}&nbsp;<strong>No major issues detected</strong>"
+                    markdown_text += f"{emoji}&nbsp;<strong>{_('No major issues detected')}</strong>"
                     markdown_text += f"</td></tr>\n"
                 else:
-                    markdown_text += f"### {emoji} No major issues detected\n\n"
+                    markdown_text += f"### {emoji} {_('No major issues detected')}\n\n"
             else:
                 issues = value
                 if gfm_supported:
                     markdown_text += f"<tr><td>"
                     # markdown_text += f"{emoji}&nbsp;<strong>{key_nice}</strong><br><br>\n\n"
-                    markdown_text += f"{emoji}&nbsp;<strong>Recommended focus areas for review</strong><br><br>\n\n"
+                    markdown_text += f"{emoji}&nbsp;<strong>{_('Recommended focus areas for review')}</strong><br><br>\n\n"
                 else:
-                    markdown_text += f"### {emoji} Recommended focus areas for review\n\n#### \n"
+                    markdown_text += f"### {emoji} {_('Recommended focus areas for review')}\n\n#### \n"
                 for i, issue in enumerate(issues):
                     try:
                         if not issue or not isinstance(issue, dict):
@@ -314,10 +325,10 @@ def convert_to_markdown_v2(output_data: dict,
         else:
             if gfm_supported:
                 markdown_text += f"<tr><td>"
-                markdown_text += f"{emoji}&nbsp;<strong>{key_nice}</strong>: {value}"
+                markdown_text += f"{emoji}&nbsp;<strong>{_(key_nice)}</strong>: {value}"
                 markdown_text += f"</td></tr>\n"
             else:
-                markdown_text += f"### {emoji} {key_nice}: {value}\n\n"
+                markdown_text += f"### {emoji} {_(key_nice)}: {value}\n\n"
 
     if gfm_supported:
         markdown_text += "</table>\n"
@@ -1328,11 +1339,24 @@ def process_description(description_full: str) -> Tuple[str, List]:
     if not description_full:
         return "", []
 
-    # description_split = description_full.split(PRDescriptionHeader.FILE_WALKTHROUGH.value)
-    if PRDescriptionHeader.FILE_WALKTHROUGH.value in description_full:
+    has_file_walkthrough = (
+        FILE_WALKTHROUGH_ATTRIBUTE in description_full
+        or PRDescriptionHeader.FILE_WALKTHROUGH.value in description_full
+    )
+    if has_file_walkthrough:
         try:
             # FILE_WALKTHROUGH are presented in a collapsible section in the description
-            regex_pattern = r'<details.*?>\s*<summary>\s*<h3>\s*' + re.escape(PRDescriptionHeader.FILE_WALKTHROUGH.value) + r'\s*</h3>\s*</summary>'
+            if FILE_WALKTHROUGH_ATTRIBUTE in description_full:
+                regex_pattern = (
+                    r'<details[^>]*' + re.escape(FILE_WALKTHROUGH_ATTRIBUTE)
+                    + r'[^>]*>\s*<summary>\s*<h3>.*?</h3>\s*</summary>'
+                )
+            else:
+                regex_pattern = (
+                    r'<details.*?>\s*<summary>\s*<h3>\s*'
+                    + re.escape(PRDescriptionHeader.FILE_WALKTHROUGH.value)
+                    + r'\s*</h3>\s*</summary>'
+                )
             description_split = re.split(regex_pattern, description_full, maxsplit=1, flags=re.DOTALL)
 
             # If the regex pattern is not found, fallback to the previous method

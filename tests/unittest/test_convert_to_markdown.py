@@ -55,6 +55,8 @@ class TestConvertToMarkdown:
         expected_output = textwrap.dedent(f"""\
             {PRReviewHeader.REGULAR.value} 🔍
 
+            <!-- pr-agent:review -->
+
             Here are some key observations to aid the review process:
 
             <table>
@@ -75,6 +77,8 @@ class TestConvertToMarkdown:
 
         expected_output = textwrap.dedent("""\
             ## PR Reviewer Guide 🔍
+
+            <!-- pr-agent:review -->
 
             Here are some key observations to aid the review process:
 
@@ -109,6 +113,8 @@ class TestConvertToMarkdown:
         expected_output = textwrap.dedent(f"""\
             ## PR Reviewer Guide 🔍
 
+            <!-- pr-agent:review -->
+
             Here are some key observations to aid the review process:
 
             <table>
@@ -138,6 +144,8 @@ class TestConvertToMarkdown:
 
         expected_output = textwrap.dedent("""\
             ## PR Reviewer Guide 🔍
+
+            <!-- pr-agent:review -->
 
             Here are some key observations to aid the review process:
 
@@ -185,6 +193,8 @@ class TestConvertToMarkdown:
 
         expected_output = textwrap.dedent("""\
             ## PR Reviewer Guide 🔍
+
+            <!-- pr-agent:review -->
 
             Here are some key observations to aid the review process:
 
@@ -236,6 +246,8 @@ class TestConvertToMarkdown:
         expected_output = textwrap.dedent(f"""
             {PRReviewHeader.REGULAR.value} 🔍
 
+            <!-- pr-agent:review -->
+
             Here are some key observations to aid the review process:
 
             <table>
@@ -247,6 +259,8 @@ class TestConvertToMarkdown:
         # Non-GFM branch
         expected_output_no_gfm = textwrap.dedent(f"""
         {PRReviewHeader.REGULAR.value} 🔍
+
+        <!-- pr-agent:review -->
 
         Here are some key observations to aid the review process:
 
