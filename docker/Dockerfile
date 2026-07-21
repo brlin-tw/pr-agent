@@ -1,3 +1,11 @@
+FROM python:3.12.13-slim AS locale_builder
+
+RUN apt update && apt install --no-install-recommends -y gettext && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+ADD pr_agent/locales pr_agent/locales
+RUN find pr_agent/locales -name '*.po' -exec sh -c 'msgfmt "$1" -o "${1%.po}.mo"' _ {} \;
+
 FROM python:3.12.13-slim AS base
 
 RUN apt update && apt install --no-install-recommends -y git curl && apt-get clean && rm -rf /var/lib/apt/lists/*
@@ -6,6 +14,7 @@ WORKDIR /app
 ADD pyproject.toml .
 ADD requirements.txt .
 ADD docs docs
+COPY --from=locale_builder /app/pr_agent/locales pr_agent/locales
 RUN pip install --no-cache-dir . && rm pyproject.toml requirements.txt
 ENV PYTHONPATH=/app
 
