@@ -1,0 +1,25 @@
+Section: devel
+Priority: optional
+Standards-Version: 4.7.2
+
+Package: pr-agent-deps
+Version: 1.0
+Maintainer: Ofir Friedman <ofir.f@qodo.ai>
+Depends:
+ python3 (>= 3.12),
+ python3-venv,
+ python3-pip,
+ python3-dynaconf,
+ python3-html2text,
+ python3-pytest (>= 9),
+ python3-pytest-asyncio,
+ python3-flake8 (>= 7.3),
+ gettext,
+ git
+Architecture: all
+Description: Development dependencies for PR-Agent
+ Installs the Debian packages needed to create the Python environment, compile
+ localization catalogs, and run PR-Agent's unit tests and lint checks.
+ .
+ Python dependencies without Debian packages must still be installed from
+ requirements.txt and requirements-dev.txt in a virtual environment.

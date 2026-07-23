@@ -79,6 +79,12 @@ msgstr "建議的文件內容"
 msgid "Preparing suggestions..."
 msgstr "正在準備建議……"
 
+msgid "Generating PR code suggestions"
+msgstr "正在產生 PR 程式碼建議"
+
+msgid "Work in progress ..."
+msgstr "處理中……"
+
 msgid "Preparing PR description..."
 msgstr "正在準備 PR 描述……"
 
@@ -117,6 +123,9 @@ msgstr "描述工具使用指南"
 
 msgid "PR Agent Walkthrough"
 msgstr "PR Agent 導覽"
+
+msgid "User description"
+msgstr "使用者描述"
 
 msgid "Review"
 msgstr "審閱"

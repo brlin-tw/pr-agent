@@ -596,7 +596,7 @@ class PRDescription:
                     key_publish = "PR Type"
                 # elif key_publish == "Description":
                 #     key_publish = "PR Description"
-                pr_body += f"### **{key_publish}**\n"
+                pr_body += f"### **{_(key_publish)}**\n"
             if 'walkthrough' in key.lower():
                 if self.git_provider.is_supported("gfm_markdown"):
                     pr_body += "<details> <summary>files:</summary>\n\n"

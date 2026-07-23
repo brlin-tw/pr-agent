@@ -70,6 +70,24 @@ def test_walkthrough_headings_use_configured_locale():
     assert "檔案導覽" in walkthrough
 
 
+def test_user_description_heading_uses_configured_locale():
+    from pr_agent.tools.pr_description import PRDescription
+
+    settings = get_settings()
+    original_locale = settings.config.response_language
+    tool = PRDescription.__new__(PRDescription)
+    tool.data = {"User Description": "Original body from user"}
+    tool.vars = {"title": "Title"}
+    tool.git_provider = type("Provider", (), {"is_supported": lambda self, feature: False})()
+    try:
+        settings.config.response_language = "zh-TW"
+        _, body, _, _ = tool._prepare_pr_answer()
+    finally:
+        settings.config.response_language = original_locale
+
+    assert "### **使用者描述**" in body
+
+
 def test_persistent_review_migrates_legacy_heading_to_marker():
     settings = get_settings()
     original_locale = settings.config.response_language

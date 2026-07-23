@@ -1,4 +1,5 @@
 from pr_agent.config_loader import get_settings
+from pr_agent.i18n import gettext as _
 
 DEFAULT_PROGRESS_GIF_WIDTH = 48
 DEFAULT_PROGRESS_GIF_URL = "https://www.qodo.ai/images/pr_agent/dual_ball_loading-crop.gif"
@@ -27,7 +28,7 @@ def build_progress_comment() -> str:
     gif_width = get_progress_gif_width()
 
     return (
-        "## Generating PR code suggestions\n\n"
-        "\nWork in progress ...<br>\n"
+        f"## {_('Generating PR code suggestions')}\n\n"
+        f"\n{_('Work in progress ...')}<br>\n"
         f"<img src=\"{gif_url}\" alt=\"Work in progress\" width=\"{gif_width}\">"
     )
