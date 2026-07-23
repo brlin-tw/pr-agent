@@ -594,8 +594,6 @@ class PRDescription:
                 key_publish = key.rstrip(':').replace("_", " ").capitalize()
                 if key_publish == "Type":
                     key_publish = "PR Type"
-                # elif key_publish == "Description":
-                #     key_publish = "PR Description"
                 pr_body += f"### **{_(key_publish)}**\n"
             if 'walkthrough' in key.lower():
                 if self.git_provider.is_supported("gfm_markdown"):
