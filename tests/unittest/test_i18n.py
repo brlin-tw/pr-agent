@@ -54,7 +54,12 @@ def test_walkthrough_headings_use_configured_locale():
     settings = get_settings()
     original_locale = settings.config.response_language
     tool = PRDescription.__new__(PRDescription)
-    tool.data = {"changes_diagram": "diagram", "pr_files": []}
+    tool.data = {
+        "type": "Enhancement",
+        "description": "Description text",
+        "changes_diagram": "diagram",
+        "pr_files": [],
+    }
     tool.file_label_dict = []
     tool.vars = {"title": "Title"}
     tool.git_provider = type("Provider", (), {"is_supported": lambda self, feature: True})()
@@ -65,6 +70,8 @@ def test_walkthrough_headings_use_configured_locale():
     finally:
         settings.config.response_language = original_locale
 
+    assert "### **PR 類型**" in body
+    assert "### **描述**" in body
     assert "### 圖表導覽" in body
     assert "data-pr-agent-section=\"file-walkthrough\"" in walkthrough
     assert "檔案導覽" in walkthrough

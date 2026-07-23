@@ -22,6 +22,12 @@ msgstr "圖表導覽"
 msgid "File Walkthrough"
 msgstr "檔案導覽"
 
+msgid "PR Type"
+msgstr "PR 類型"
+
+msgid "Description"
+msgstr "描述"
+
 msgid "Review for commits since previous PR-Agent review"
 msgstr "審閱自上次 PR-Agent 審閱後的提交"
 
